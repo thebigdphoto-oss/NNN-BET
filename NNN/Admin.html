@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin – Fake Bet Results</title>
+<style>
+  body { font-family: Arial; background: #fafafa; padding: 20px; }
+  .hidden { display: none; }
+  button {
+    background: #007bff; color: white; border: none;
+    padding: 6px 12px; border-radius: 5px; margin: 2px; cursor: pointer;
+  }
+  button:hover { background: #0056b3; }
+  .bet-item { margin:5px 0; padding:5px; background:white; border-radius:5px; box-shadow:0 0 3px rgba(0,0,0,0.1); }
+</style>
+</head>
+<body>
+
+<h2>Admin Panel</h2>
+
+<div id="login">
+  <p>Password:</p>
+  <input type="password" id="password">
+  <button onclick="checkPassword()">Login</button>
+</div>
+
+<div id="adminPanel" class="hidden">
+  <h3>Placed Bets</h3>
+  <div id="betContainer"></div>
+  <button onclick="clearData()">Clear All Bets</button>
+</div>
+
+<script>
+const adminPassword = "OzOliver21";
+
+function checkPassword() {
+  const pass = document.getElementById('password').value;
+  if (pass === adminPassword) {
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('adminPanel').classList.remove('hidden');
+    renderBets();
+  } else {
+    alert("Wrong password");
+  }
+}
+
+function renderBets() {
+  const bets = JSON.parse(localStorage.getItem('bets')) || [];
+  const container = document.getElementById('betContainer');
+  container.innerHTML = '';
+
+  if (bets.length === 0) container.innerHTML = '<p>No bets placed yet.</p>';
+
+  bets.forEach((bet, index) => {
+    const div = document.createElement('div');
+    div.className = 'bet-item';
+    div.innerHTML = `
+      <strong>${bet.user}</strong> - ${bet.name} @ ${bet.odds} - ${bet.result ? bet.result.toUpperCase() : 'Pending'}
+      <button onclick="markResult(${index}, 'win')">Win</button>
+      <button onclick="markResult(${index}, 'lose')">Lose</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function markResult(index, result) {
+  const bets = JSON.parse(localStorage.getItem('bets')) || [];
+  if (!bets[index]) return;
+  bets[index].result = result;
+  localStorage.setItem('bets', JSON.stringify(bets));
+  renderBets();
+}
+
+function clearData() {
+  if (!confirm("Are you sure you want to clear all bets?")) return;
+  localStorage.removeItem('bets');
+  renderBets();
+}
+</script>
+
+</body>
+</html>

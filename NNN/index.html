@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fake Betting Demo</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f9f9f9; margin:0; padding:0; }
+  header { background: #1e90ff; color:white; text-align:center; padding:15px; }
+  .container { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:10px; padding:20px; }
+  .bet-card { background:white; border-radius:10px; box-shadow:0 0 5px rgba(0,0,0,0.1); padding:10px 15px; display:flex; justify-content:space-between; align-items:center; margin:5px 0; }
+  button { background:#28a745; color:white; border:none; padding:6px 10px; border-radius:5px; cursor:pointer; }
+  button:hover { background:#218838; }
+  #betslip { position:fixed; top:0; right:-350px; width:300px; height:100%; background:white; border-left:2px solid #ccc; padding:15px; transition:right 0.4s; overflow-y:auto; }
+  #betslip.active { right:0; }
+  #toggleSlip { position:fixed; top:50%; right:0; background:#007bff; color:white; border:none; padding:10px; border-radius:10px 0 0 10px; cursor:pointer; }
+  #usernameInput { text-align:center; padding:10px; }
+  #usernameInput input { padding:5px; width:200px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Fake Betting Site – Educational Only</h1>
+  <p>All bets max $1 | No real money</p>
+</header>
+
+<div id="usernameInput">
+  <label for="username">Your Name: </label>
+  <input type="text" id="username" placeholder="Enter your name">
+</div>
+
+<div class="container" id="betListContainer"></div>
+
+<button id="toggleSlip" onclick="toggleSlip()">Bets</button>
+
+<div id="betslip">
+  <h3>Your Bet Slip</h3>
+  <ul id="betList"></ul>
+  <p>Total Bets: <span id="betCount">0</span></p>
+  <button onclick="placeBets()">Place Bets</button>
+</div>
+
+<script>
+const data = [
+  "H. COLLINS – 6.78","J. LANGLEY – 8.62","O. DWYER – 9.42","J. NIJAM – 6.65","O. TICKELL – 4.11",
+  "F. HEAGNEY – 8.97","G. REINEHR – 7.50","H. SLEE – 11.30","L. HONAN – 403.9","H. LU – 61.2",
+  "T. DUNCAN – 151.00","T. MCINTYRE – 9.3","A. O’SULLIVAN – 15.00","J. MOORE – 5.36","J. RICHARDSON – 5.43",
+  "M. SCOTTBARBER – 7.00","C. TUDDENHAM – 5.90","S. MOLESWORTH – 8.7","C. CONNERS – 9.06","W. FARRINGTON – 1.91",
+  "A. PAGE – 7.06","T. SPOKEVICIUS – 1.29 (FAV)","T. KINNERSLEY – 8.90","M. SAMPSON – 12.06","H. BULL – 7.61",
+  "S. WAREHAM – 1001.00","N. OSWIN – 5.40","C. TORRANCE – 2.80","J. WATSON – 8.70","C. MUELLER – 11.00",
+  "G. BIBBY – 1.45","T. HOPKINS – 9.00","A. FRASER – 6.70","T. HINKLEY – 3003.00","H. HANLON – 9.08",
+  "S. MYERS – 11.00","W. JARDINE – 101.00","J. BARDELL – 8.70","T. PENNY – 2.94","F. HUF – 8.20",
+  "R. BURKE – 15.00","C. RIMMINGTON – 6.93","S. WINTON – 9.81"
+];
+
+let bets = JSON.parse(localStorage.getItem('bets')) || [];
+
+function toggleSlip() {
+  document.getElementById('betslip').classList.toggle('active');
+  renderBets();
+}
+
+function addBet(name, odds) {
+  const username = document.getElementById('username').value.trim();
+  if (!username) return alert("Please enter your name before placing a bet.");
+  if (bets.length >= 10) return alert("Limit 10 bets.");
+  
+  bets.push({ name, odds, amount: 1, user: username });
+  localStorage.setItem('bets', JSON.stringify(bets));
+  renderBets();
+  alert(`Added $1 bet on ${name} for ${username}`);
+}
+
+function renderBets() {
+  const list = document.getElementById('betList');
+  list.innerHTML = '';
+  bets.forEach(bet => {
+    const li = document.createElement('li');
+    li.textContent = `${bet.user}: ${bet.name} @ ${bet.odds} - ${bet.result ? bet.result.toUpperCase() : 'Pending'}`;
+    list.appendChild(li);
+  });
+  document.getElementById('betCount').textContent = bets.length;
+}
+
+function placeBets() {
+  if (bets.length === 0) return alert("No bets to place.");
+
+  let totalWinnings = 0;
+  bets.forEach(bet => {
+    if(bet.result === 'win') totalWinnings += parseFloat(bet.odds);
+  });
+
+  alert(`Bets placed!\nTotal Winnings: $${totalWinnings.toFixed(2)}`);
+  localStorage.setItem('bets', JSON.stringify(bets));
+}
+
+function renderNames() {
+  const container = document.getElementById('betListContainer');
+  data.forEach(item => {
+    const [name, odd] = item.split("–").map(s => s.trim());
+    const div = document.createElement('div');
+    div.className = 'bet-card';
+    div.innerHTML = `<span>${name}</span><span>${odd}</span>
+                     <button onclick="addBet('${name}', '${odd}')">Bet $1</button>`;
+    container.appendChild(div);
+  });
+}
+
+renderNames();
+renderBets();
+</script>
+</body>
+</html>
